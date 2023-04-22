@@ -45,18 +45,24 @@ def list_differences(word_list1, word_list2, solutions):
 
         update_diff_dict(found_length_dict, solution_length_dict, diff_dict[letter]['lengths'])
         update_diff_dict(found_bigram_dict, solution_bigram_dict, diff_dict[letter]['bigrams'])
+    
+    return diff_dict
 
+
+def print_results(diff_dict):
     # print out the result
     
-    for letter in diff_dict.keys():
-        print(letter.upper())
-        for length, num in diff_dict[letter]['lengths'].items():
-            print(str(length) + ' ' + str(num))
-
-        for bigram, num in diff_dict[letter]['bigrams'].items():
-            print(bigram.upper() + ' ' + str(num))
-
-        print('\r')
+    for first_letter in diff_dict.keys():
+        if diff_dict[first_letter]['lengths']:
+            length_list = []
+            bigram_list = []
+            for length in diff_dict[first_letter]['lengths'].keys():
+                for i in range(list(diff_dict[first_letter]['lengths'].values())[0]):
+                    length_list.append(length)
+            for bigram in diff_dict[first_letter]['bigrams'].keys():
+                for j in range(list(diff_dict[first_letter]['bigrams'].values())[0]):
+                    bigram_list.append(bigram)
+            print(f'Bigrams: {bigram_list}, lengths: {length_list}')
             
                 
             
