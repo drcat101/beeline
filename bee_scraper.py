@@ -17,7 +17,12 @@ def scrape_hints_page():
     browser = Firefox(options=opts)
     browser.get(f'https://www.nytimes.com/{date_link}/crosswords/spelling-bee-forum.html')
 
-    grid_text = browser.find_element(By.ID, f'{day_of_month}sb-forum-{date_element}').text
+    # previous website version
+    #grid_text = browser.find_element(By.ID, f'{day_of_month}sb-forum-{date_element}').text
+
+    grid_element = browser.find_elements(By.ID, f'{day_of_month}sb-forum-{date_element}')
+    child = (grid_element[0].find_elements(By.XPATH, '*'))
+    grid_text = child[0].get_attribute('innerText')
 
     browser.quit()
 
@@ -44,7 +49,7 @@ def get_bigrams_by_letter(first_letter, grid_text_list):
     bigram_dict = {}
     for grid_line in grid_text_list:
         # bigrams have format AC-12
-        if re.match(f'{first_letter}[A-Z]-\d\d?', grid_line):
+        if re.match(rf'{first_letter}[A-Z]-\d\d?', grid_line):
             bigrams = grid_line.split()
             for bigram in bigrams:
                 bigram_dict[bigram[:2]] = int(bigram[3:])
@@ -53,22 +58,26 @@ def get_bigrams_by_letter(first_letter, grid_text_list):
 
 
 def scrape_and_parse_hints():
-    # TODO also get number of words and number of points
 
     grid_text = scrape_hints_page()
     grid_text_list = grid_text.split("\n")
 
     # TODO search for letters and lengths using regex to make it more robust
-    todays_letters = grid_text_list[1].split()
-    todays_lengths = grid_text_list[3].split()[:-1]
+    todays_letters = grid_text_list[2].split()
+    words_points_pangrams = grid_text_list[4].split()
+    todays_lengths = grid_text_list[6].split()[:-1]
+
+    words_points_pangrams_dict = {'words': words_points_pangrams[1],
+                    'points': words_points_pangrams[3],
+                    'pangrams': words_points_pangrams[5]}
 
     results_dict = {}
+
     for letter in todays_letters:
         results_dict[letter] = {'lengths': get_lengths_by_letter(letter, grid_text_list, todays_lengths)}
         results_dict[letter]['bigrams'] = get_bigrams_by_letter(letter, grid_text_list)
 
-    print(results_dict)
-    return results_dict
+    return results_dict, words_points_pangrams_dict
 
 
 if __name__ == '__main__':
